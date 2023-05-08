@@ -1,15 +1,18 @@
 from rest_framework import status, decorators, response
+from django.http import JsonResponse
+
+from typing import Union
 
 from toys.models import Toy
 from toys.serializers import ToySerializer
 
 
 @decorators.api_view(["GET", "POST"])
-def toy_list(request) -> response.Response | None:
+def toy_list(request) -> Union[response.Response, None]:
     if request.method == "GET":
         toys = Toy.objects.all()
         toys_serializer = ToySerializer(toys, many=True)
-        return response.Response(toys_serializer(data=request.data))
+        return response.Response(toys_serializer.data)
     elif request.method == "POST":
         toys_serializer = ToySerializer(data=request.data)
         if toys_serializer.is_valid():
@@ -22,8 +25,8 @@ def toy_list(request) -> response.Response | None:
         )
 
 
-@api_view(["GET", "PUT", "DELETE"])
-def toy_detail(request, pk):
+@decorators.api_view(["GET", "PUT", "DELETE"])
+def toy_detail(request, pk) -> Union[response.Response, None]:
     try:
         toy = Toy.objects.get(pk=pk)
     except Toy.DoesNotExist:
